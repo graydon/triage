@@ -68,7 +68,7 @@ Your %d bugs for this week are:
 
 %s
 """ %
-(repo, len(bugs), len(users), n, len(bugs), "\n".join(bugs))))
+(repo, n, len(users), len(bugs), len(bugs), "\n".join(bugs))))
 
     msg["Subject"] = "bug inspection assignment for %s on %s" % (repo, date)
     msg["From"] = sender
