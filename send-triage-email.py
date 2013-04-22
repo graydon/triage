@@ -24,12 +24,19 @@ users = cfg["users"]
 for user in users:
     n += users[user]
 
-print "grabbing %d most-forgotten bugs from %s" % (n, repo)
-out = subprocess.check_output("ghi list --sort updated --reverse --no-pulls -- %s | head -n %d"
-                              % (repo, n+1),
-                              shell=True)
+attempts = 0
+all_bugs = []
+while len(all_bugs) == 0:
+    print "grabbing %d most-forgotten bugs from %s" % (n, repo)
+    out = subprocess.check_output("ghi --no-color list --sort updated --reverse --no-pulls -- %s | head -n %d"
+                                  % (repo, n+1),
+                                  shell=True)
+    all_bugs = [line for line in out.split("\n") if re.match("^ *\d+:", line)]
+    attempts += 1
+    if attempts > 100:
+        print "too many failed attempts, exiting"
+        exit(1)
 
-all_bugs = [line for line in out.split("\n") if re.match("^ *\d+:", line)]
 random.shuffle(all_bugs)
 date = datetime.date.today().isoformat()
 
@@ -41,6 +48,8 @@ for user in users:
         (num, desc) = bug.split(':', 1)
         bugs.append("%7s:%s\n         http://github.com/%s/issues/%s\n" %
                     (num, desc,                      repo,       num))
+    assert(len(bugs) != 0)
+    assert(k != 0)
     msg = MIMEText(("""Greetings %s contributor!
 
 This week's triage assignment is %d bugs randomly divided between %d people,
