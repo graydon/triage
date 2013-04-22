@@ -5,10 +5,42 @@ import datetime
 import subprocess
 import json
 import random
+import github
 import re
 from email.mime.text import MIMEText
 
 cfg = json.load(open("triage.cfg"))
+
+gh = github.GitHub(username=cfg["gh_user"].encode("utf8"),
+                   password=cfg["gh_pass"].encode("utf8"))
+
+owner = cfg["owner"].encode("utf8")
+repo = cfg["repo"].encode("utf8")
+
+n = 0
+users = cfg["users"]
+for user in users:
+    n += users[user]
+
+
+more = True
+page = 1
+issues = []
+while more:
+    print "fetching 100 bugs..."
+    issues += gh.repos(owner)(repo).issues().get(direction='asc',
+                                                 sort='updated',
+                                                 per_page=100,
+                                                 page=page)
+    page += 1
+    if len(issues) == 0:
+        more = False
+    if len(issues) > n:
+        more = False
+
+print "got %d bugs" % len(issues)
+random.shuffle(issues)
+date = datetime.date.today().isoformat()
 
 smtp = cfg["smtp_server"].encode("utf8")
 sender = cfg["smtp_user"].encode("utf8")
@@ -18,36 +50,15 @@ server.connect(smtp, 465)
 server.ehlo()
 server.login(sender, cfg["smtp_pass"].encode("utf8"))
 
-repo = cfg["gh_repo"].encode("utf8")
-n = 0
-users = cfg["users"]
-for user in users:
-    n += users[user]
-
-attempts = 0
-all_bugs = []
-while len(all_bugs) == 0:
-    print "grabbing %d most-forgotten bugs from %s" % (n, repo)
-    out = subprocess.check_output("ghi --no-color list --sort updated --reverse --no-pulls -- %s | head -n %d"
-                                  % (repo, n+1),
-                                  shell=True)
-    all_bugs = [line for line in out.split("\n") if re.match("^ *\d+:", line)]
-    attempts += 1
-    if attempts > 100:
-        print "too many failed attempts, exiting"
-        exit(1)
-
-random.shuffle(all_bugs)
-date = datetime.date.today().isoformat()
-
 for user in users:
     k = users[user]
     bugs = []
-    while len(bugs) < k and len(all_bugs) != 0:
-        bug = all_bugs.pop().strip()
-        (num, desc) = bug.split(':', 1)
-        bugs.append("%7s:%s\n         http://github.com/%s/issues/%s\n" %
-                    (num, desc,                      repo,       num))
+    while len(bugs) < k and len(issues) != 0:
+        issue = issues.pop()
+        num = issue["number"]
+        desc = issue["title"].encode("utf8")
+        bugs.append("%7s: %s\n         http://github.com/%s/%s/issues/%s\n" %
+                    (num, desc,                      owner, repo,   num))
     assert(len(bugs) != 0)
     assert(k != 0)
     msg = MIMEText(("""Greetings %s contributor!
