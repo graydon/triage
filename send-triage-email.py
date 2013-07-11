@@ -57,7 +57,7 @@ for user in users:
         issue = issues.pop()
         num = issue["number"]
         desc = issue["title"].encode("utf8")
-        bugs.append("%7s: %s\n         http://github.com/%s/%s/issues/%s\n" %
+        bugs.append("  - [ ] %5s: %s\n               http://github.com/%s/%s/issues/%s\n" %
                     (num, desc,                      owner, repo,   num))
     assert(len(bugs) != 0)
     assert(k != 0)
