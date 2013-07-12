@@ -26,12 +26,21 @@ for user in users:
 more = True
 page = 1
 issues = []
+issue_num_set = set()
 while more:
     print "fetching 100 bugs..."
-    issues += gh.repos(owner)(repo).issues().get(direction='asc',
-                                                 sort='updated',
-                                                 per_page=100,
-                                                 page=page)
+    tmp_issues = gh.repos(owner)(repo).issues().get(direction='asc',
+                                                    sort='updated',
+                                                    per_page=100,
+                                                    page=page)
+    for issue in tmp_issues:
+        i = int(issue["number"])
+        if i in issue_num_set:
+            print "DUPE: #%d" % i
+        else:
+            issues.append(issue)
+            issue_num_set.add(i)
+
     page += 1
     if len(issues) == 0:
         more = False
