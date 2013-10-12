@@ -89,6 +89,10 @@ And finally:
 
   - Actually try to fix the bug, if it seems within reach
 
+Note: only after all the above has been attempted and no improvements can
+be made then you may 'bump' the bug by leaving a comment such as 'bumping
+for triage'.
+
 We recommend using https://github.com/stephencelis/ghi for command-line
 operations on bugs. If you have any questions about your assigned bugs,
 please drop in to IRC and ask about them.
