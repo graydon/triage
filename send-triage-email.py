@@ -84,6 +84,9 @@ the bugs forward:
   - Nominate for a milestone if it fits the milestone's criteria
   - Add testcases, narrow them down or attempt to reproduce failures
   - Provide suggestions on how to fix the bug
+  - Modernize test cases
+  - Can a newbie handle this bug? Tag it 'easy'!
+  - Can a newbie not handle this 'easy' bug? Untag it!
 
 And finally:
 
